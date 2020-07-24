@@ -1,0 +1,63 @@
+## Author : Ajith Chiriyankandath Jose
+## Import the necessary libraries and the dataset
+
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+from sklearn.preprocessing import MinMaxScaler
+from sklearn.model_selection import train_test_split
+import tensorflow.keras
+from keras.models import Sequential
+from keras.layers import Dense
+
+house_df = pd.read_csv('data.csv')
+
+## Clean the dataset and split into input and output data
+
+X = house_df.drop(['date', 'price', 'street', 'city', 'statezip', 'country'], axis = 1) # Drop the irrelevant variables that are not used as input parameters for this analysis
+y = house_df['price'] # Dependent variable which is the output parameter
+y = y.values.reshape(-1,1) # Reshape the ouput dataset
+
+## Normalize the data
+
+scaler_x = MinMaxScaler()
+X_scaled = scaler_x.fit_transform(X)
+scaler_y = MinMaxScaler()
+y_scaled = scaler_y.fit_transform(y)
+
+## Split the data into training and testing datasets
+
+X_train, X_test, y_train, y_test = train_test_split(X_scaled, y_scaled, test_size = 0.25)
+
+## Train the model
+
+model = Sequential()
+model.add(Dense(30, input_dim=12, activation='relu'))
+model.add(Dense(30, activation='relu'))
+model.add(Dense(1, activation='linear'))
+model.compile(optimizer='adam', loss='mean_squared_error')
+epochs_hist = model.fit(X_train, y_train, epochs=100, batch_size=25,  verbose=1, validation_split=0.2)
+
+## Plot the Loss Progression during training vs validation 
+plt.plot(epochs_hist.history['loss'])
+plt.plot(epochs_hist.history['val_loss'])
+plt.title('Model Loss Progression During Training/Validation')
+plt.ylabel('Training and Validation Losses')
+plt.xlabel('Epoch Number')
+plt.legend(['Training Loss', 'Validation Loss'])
+
+## Check the accuracy of model 
+# Feed the model with a value of the test dataset
+X_test = np.array([[4.44444444e-01, 3.12500000e-01, 1.11617312e-01, 8.60671771e-04,
+       4.00000000e-01, 0.00000000e+00, 0.00000000e+00, 5.00000000e-01,
+       1.13938053e-01, 9.12863071e-02, 9.12280702e-01, 9.94538232e-01]])
+y_predict = model.predict(X_test) # Predict the output 'y'
+y_predict_denormalized = scaler_y.inverse_transform(y_predict)
+print('Predicted Price of House=', y_predict_denormalized)
+
+# Calculate Delta between predicted output and actual output 
+y_output = scaler_y.inverse_transform(y_test)
+delta = abs(y_predict_sample_orig - y_output[1])
+delta
+
